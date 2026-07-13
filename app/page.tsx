@@ -1,6 +1,6 @@
 "use client";
 
-import { registerUser, loginUser } from "../services/authService";
+import { registerUser } from "../services/authService";
 import { addClient, getClients } from "../services/clientService";
 
 import React, { useState, useEffect } from "react";
@@ -16,6 +16,10 @@ import {
 } from "recharts";
 import { JurexStorage } from "../lib/storage";
 import { User as UserType, Client, Loan, PaymentInstallment, Notification, AIAnalysisResult } from "../lib/types";
+
+// 🔑 Import Firebase Auth
+import { auth } from "../services/firebase";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 
 export default function Home() {
   // Auth state
@@ -93,42 +97,36 @@ export default function Home() {
 
   // App initialization
   useEffect(() => {
-  JurexStorage.initialize();
-  const active = JurexStorage.getActiveUser();
-  if (active) {
-    const timer = setTimeout(() => {
-      setUser(active);
-      setProfileName(active.name);
-      setProfilePhone(active.phone);
-    }, 0);
-    return () => clearTimeout(timer);
-  }
-}, []);
-
-// Firebase integration (novo bloco)
-useEffect(() => {
-  async function connectFirebase() {
-    try {
-      // Criar usuário de teste
-      await registerUser("teste@jurex.com", "123456");
-
-      // Salvar cliente de teste
-      await addClient({
-        name: "Cliente Teste",
-        cpf: "12345678900",
-        createdAt: new Date()
-      });
-
-      // Listar clientes
-      const clients = await getClients();
-      console.log("Clientes cadastrados:", clients);
-    } catch (error) {
-      console.error("Erro na integração Firebase:", error);
+    JurexStorage.initialize();
+    const active = JurexStorage.getActiveUser();
+    if (active) {
+      const timer = setTimeout(() => {
+        setUser(active);
+        setProfileName(active.name);
+        setProfilePhone(active.phone);
+      }, 0);
+      return () => clearTimeout(timer);
     }
-  }
+  }, []);
 
-  connectFirebase();
-}, []);
+  // Firebase integration (novo bloco)
+  useEffect(() => {
+    async function connectFirebase() {
+      try {
+        await registerUser("teste@jurex.com", "123456");
+        await addClient({
+          name: "Cliente Teste",
+          cpf: "12345678900",
+          createdAt: new Date()
+        });
+        const clients = await getClients();
+        console.log("Clientes cadastrados:", clients);
+      } catch (error) {
+        console.error("Erro na integração Firebase:", error);
+      }
+    }
+    connectFirebase();
+  }, []);
 
   // Fetch data on user login
   useEffect(() => {
@@ -150,261 +148,45 @@ useEffect(() => {
     }
   }, [user]);
 
-  // Handle Authentication
-  const handleAuth = (e: React.FormEvent) => {
+  // 🔑 Handle Authentication (corrigido)
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError("");
 
-    if (authTab === "login") {
-      if (!email || !password) {
-        setAuthError("Por favor, preencha todos os campos.");
-        return;
-      }
-      const u = JurexStorage.login(email, password);
-      if (u) {
-        setUser(u);
-        setProfileName(u.name);
-        setProfilePhone(u.phone);
-      } else {
-        // Fallback or custom creation
-        const registered = JurexStorage.register(email.split("@")[0], email, "(81) 99999-9999");
-        setUser(registered);
-        setProfileName(registered.name);
-        setProfilePhone(registered.phone);
-      }
-    } else {
-      if (!name || !email || !password) {
-        setAuthError("Por favor, preencha todos os campos.");
-        return;
-      }
-      const registered = JurexStorage.register(name, email, "(81) 99999-9999");
-      setUser(registered);
-      setProfileName(registered.name);
-      setProfilePhone(registered.phone);
-    }
-  };
-
-  // Sign out
-  const handleLogout = () => {
-    JurexStorage.logout();
-    setUser(null);
-    setEmail("");
-    setPassword("");
-    setAuthTab("login");
-  };
-
-  // Add Client
-  const handleAddClientSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !newClientName) return;
-
-    const created = JurexStorage.addClient(
-      user.id,
-      newClientName,
-      newClientCpf,
-      newClientPhone,
-      newClientEmail,
-      newClientNotes
-    );
-
-    setClients(JurexStorage.getClients(user.id));
-    setNewClientName("");
-    setNewClientCpf("");
-    setNewClientPhone("");
-    setNewClientEmail("");
-    setNewClientNotes("");
-    setShowAddClient(false);
-    setSelectedClientId(created.id);
-  };
-
-  const handleSelectClient = (client: Client) => {
-    setSelectedClient(client);
-    setEditClientName(client.name);
-    setEditClientCpf(client.cpfCnpj);
-    setEditClientPhone(client.phone || "");
-    setEditClientEmail(client.email || "");
-    setEditClientNotes(client.notes || "");
-    setIsEditingClient(false);
-  };
-
-  const handleEditClientSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !selectedClient) return;
-
-    const updated: Client = {
-      ...selectedClient,
-      name: editClientName,
-      cpfCnpj: editClientCpf,
-      phone: editClientPhone,
-      email: editClientEmail,
-      notes: editClientNotes,
-    };
-
-    JurexStorage.updateClient(updated);
-    setClients(JurexStorage.getClients(user.id));
-    setSelectedClient(updated);
-    setIsEditingClient(false);
-  };
-
-  const handleDeleteClient = (clientId: string) => {
-    if (!user) return;
-    JurexStorage.deleteClient(clientId);
-    setClients(JurexStorage.getClients(user.id));
-    setLoans(JurexStorage.getLoans(user.id));
-    setSelectedClient(null);
-    setShowDeleteClientConfirm(false);
-  };
-
-  // Pre-analyze risk using Gemini API
-  const handlePreAnalyzeRisk = async () => {
-    if (!selectedClientId || !loanAmount) return;
-    const clientObj = clients.find(c => c.id === selectedClientId);
-    if (!clientObj) return;
-
-    setIsAnalyzingRisk(true);
-    setTempAIResult(null);
-
-    const loanPayload = {
-      amount: parseFloat(loanAmount),
-      interestType,
-      interestRate: parseFloat(interestRate) || 0,
-      installmentsCount: parseInt(installmentsCount) || 1,
-      frequency,
-      firstDueDate,
-      chargeLateInterest,
-    };
-
     try {
-      const response = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          client: clientObj,
-          loan: loanPayload,
-          clientHistory: loans.filter(l => l.clientId === selectedClientId)
-        })
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setTempAIResult(data);
+      if (authTab === "login") {
+        if (!email || !password) {
+          setAuthError("Por favor, preencha todos os campos.");
+          return;
+        }
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const firebaseUser = userCredential.user;
+        setUser({
+          id: firebaseUser.uid,
+          name: firebaseUser.displayName || "",
+          email: firebaseUser.email || "",
+          phone: firebaseUser.phoneNumber || ""
+        });
+        setProfileName(firebaseUser.displayName || "");
+        setProfilePhone(firebaseUser.phoneNumber || "");
       } else {
-        throw new Error(data.error || "Erro ao analisar risco");
+        if (!name || !email || !password) {
+          setAuthError("Por favor, preencha todos os campos.");
+          return;
+        }
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const firebaseUser = userCredential.user;
+        setUser({
+          id: firebaseUser.uid,
+          name,
+          email: firebaseUser.email || "",
+          phone: ""
+        });
+        setProfileName(name);
+        setProfilePhone("");
       }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsAnalyzingRisk(false);
-    }
-  };
-
-  // Create Loan Contract
-  const handleCreateLoanSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user || !selectedClientId || !loanAmount) return;
-
-    const amount = parseFloat(loanAmount);
-    const count = parseInt(installmentsCount) || 1;
-    const rate = parseFloat(interestRate) || 0;
-
-    JurexStorage.createLoan(
-      user.id,
-      selectedClientId,
-      amount,
-      interestType,
-      rate,
-      count,
-      frequency,
-      firstDueDate,
-      chargeLateInterest,
-      lateInterestType,
-      parseFloat(lateInterestValue) || 0,
-      loanNotes,
-      tempAIResult || undefined
-    );
-
-    setLoans(JurexStorage.getLoans(user.id));
-    setNotifications(JurexStorage.getNotifications(user.id));
-    
-    // Reset Form
-    setSelectedClientId("");
-    setClientSearchTerm("");
-    setLoanAmount("");
-    setInterestType("interest");
-    setInterestRate("");
-    setInstallmentsCount("");
-    setFrequency("mensal");
-    setFirstDueDate(new Date().toISOString().split("T")[0]);
-    setChargeLateInterest(false);
-    setLateInterestType("percent");
-    setLateInterestValue("1");
-    setLoanNotes("");
-    setTempAIResult(null);
-    setShowAddLoan(false);
-    setCurrentTab("inicio");
-  };
-
-  // Helper to calculate suggested interest for Apenas Juros option
-  const getSuggestedInterest = (inst: PaymentInstallment | null, l: Loan | null) => {
-    if (!inst || !l) return 0;
-    if (l.interestType === "interest" && l.interestRate > 0) {
-      return l.amount * (l.interestRate / 100);
-    }
-    return 0;
-  };
-
-  // Open the new pay selection modal instead of direct payment
-  const handlePayInstallment = (instId: string, loanId: string) => {
-    if (!user) return;
-    const loan = loans.find(l => l.id === loanId);
-    if (!loan) return;
-    const insts = JurexStorage.getInstallmentsForLoan(loanId);
-    const inst = insts.find(i => i.id === instId);
-    if (!inst) return;
-
-    setPaymentInstallment(inst);
-    setPaymentLoan(loan);
-    setPaymentType("parcela");
-    setPaymentAmount(String(inst.amount));
-    setShowPaymentModal(true);
-  };
-
-  // Confirm payment with the chosen type and amount
-  const handleConfirmPaymentWithOptions = () => {
-    if (!user || !paymentInstallment || !paymentLoan) return;
-    const amount = parseFloat(paymentAmount) || 0;
-
-    JurexStorage.payInstallmentWithOptions(
-      paymentInstallment.id,
-      paymentType,
-      amount,
-      user.id
-    );
-
-    // Refresh state
-    setLoans(JurexStorage.getLoans(user.id));
-    setNotifications(JurexStorage.getNotifications(user.id));
-
-    if (selectedLoan && selectedLoan.id === paymentLoan.id) {
-      const refreshedLoans = JurexStorage.getLoans(user.id);
-      setSelectedLoan(refreshedLoans.find(l => l.id === paymentLoan.id) || null);
-    }
-
-    // Reset payment states
-    setShowPaymentModal(false);
-    setPaymentInstallment(null);
-    setPaymentLoan(null);
-    setPaymentType("parcela");
-    setPaymentAmount("");
-  };
-
-  // Delete loan contract
-  const handleDeleteLoan = (loanId: string) => {
-    if (!user) return;
-    JurexStorage.deleteLoan(loanId);
-    setLoans(JurexStorage.getLoans(user.id));
-    setNotifications(JurexStorage.getNotifications(user.id));
-    setSelectedLoan(null);
-    setShowDeleteConfirm(false);
+    } catch (erro) {
+      setAuthError("Erro na autenticação: " + erro.message
   };
 
   // Submit renegotiate
@@ -748,12 +530,6 @@ useEffect(() => {
                 // Fast login
                 setEmail("victorcastroassis@gmail.com");
                 setPassword("12345678");
-                const u = JurexStorage.login("victorcastroassis@gmail.com", "12345678");
-                if (u) {
-                  setUser(u);
-                  setProfileName(u.name);
-                  setProfilePhone(u.phone);
-                }
               }}
               className="relative overflow-hidden w-full py-3 bg-white border border-[#bbcabf] hover:bg-[#f3f4f5] rounded-xl flex items-center justify-center gap-3 transition-all active:scale-[0.98] font-hanken font-semibold text-[#191c1d] cursor-pointer"
             >
