@@ -217,6 +217,14 @@ export default function Home() {
     }
   };
 
+  // 📌 Handle Select Client
+  const handleSelectClient = (client: Client) => {
+    setSelectedClient(client);
+    // Atualiza dados relacionados ao cliente
+    setLoans(JurexStorage.getLoans(client.id));
+    setNotifications(JurexStorage.getNotifications(client.id));
+  };
+
   // Submit renegotiate
   const handleRenegotiateSubmit = (loanId: string) => {
     if (!user) return;
