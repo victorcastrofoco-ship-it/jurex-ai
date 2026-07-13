@@ -108,10 +108,11 @@ export default function Home() {
       notes: editClientNotes,
     };
 
-    JurexStorage.updateClient(updatedClient, user?.id || "");
-    setClients(JurexStorage.getClients(user?.id || ""));
-    setSelectedClient(updatedClient);
-    setIsEditingClient(false);
+    JurexStorage.updateClient(updatedClient);
+setClients(JurexStorage.getClients(user?.id || ""));
+setSelectedClient(updatedClient);
+setIsEditingClient(false);
+
   };
 
   // App initialization
