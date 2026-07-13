@@ -103,7 +103,6 @@ export default function Home() {
     const updatedClient: Client = {
       ...selectedClient,
       name: editClientName,
-      cpf: editClientCpf,
       phone: editClientPhone,
       email: editClientEmail,
       notes: editClientNotes,
