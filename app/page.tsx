@@ -194,7 +194,11 @@ export default function Home() {
         setProfilePhone("");
       }
     } catch (erro) {
-      setAuthError("Erro na autenticação: " + erro.message);
+      if (erro instanceof Error) {
+        setAuthError("Erro na autenticação: " + erro.message);
+      } else {
+        setAuthError("Erro na autenticação: erro desconhecido");
+      }
     }
   };
 
