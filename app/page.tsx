@@ -1641,22 +1641,28 @@ setIsEditingClient(false);
               >
                 Cancelar
               </button>
-              <button 
-                onClick={() => {
-                  if (selectedClient) {
-                    handleDeleteClient(selectedClient.id);
-                  }
-                }}
-                className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer active:scale-95"
-              >
-                Confirmar Exclusão
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              // 📌 Handle Delete Client
+const handleDeleteClient = (clientId: string) => {
+  JurexStorage.deleteClient(clientId, user?.id || "");
+  setClients(JurexStorage.getClients(user?.id || ""));
+  setSelectedClient(null);
+  setIsEditingClient(false);
+};
 
-      {/* Modal: Loan Detail View & Repayment management */}
+// ...
+
+<button 
+  onClick={() => {
+    if (selectedClient) {
+      handleDeleteClient(selectedClient.id);
+    }
+  }}
+  className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer active:scale-95"
+>
+  Confirmar Exclusão
+</button>
+
+{/* Modal: Loan Detail View & Repayment management */}
       {selectedLoan && (() => {
         const client = clients.find(c => c.id === selectedLoan.clientId);
         const code = selectedLoan.code || "#" + selectedLoan.id.substring(selectedLoan.id.length - 6).toUpperCase();
