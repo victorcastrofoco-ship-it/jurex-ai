@@ -19,7 +19,7 @@ import { User as UserType, Client, Loan, PaymentInstallment, Notification, AIAna
 
 // 🔑 Import Firebase Auth
 import { auth } from "../services/firebase";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "firebase/auth";
 
 export default function Home() {
   // Auth state
@@ -198,6 +198,21 @@ export default function Home() {
         setAuthError("Erro na autenticação: " + erro.message);
       } else {
         setAuthError("Erro na autenticação: erro desconhecido");
+      }
+    }
+  };
+
+  // 🔑 Handle Logout
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setUser(null);
+      setAuthError("");
+    } catch (erro) {
+      if (erro instanceof Error) {
+        setAuthError("Erro ao sair: " + erro.message);
+      } else {
+        setAuthError("Erro ao sair: erro desconhecido");
       }
     }
   };
