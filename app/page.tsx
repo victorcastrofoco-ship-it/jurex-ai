@@ -95,9 +95,6 @@ export default function Home() {
   const [profileName, setProfileName] = useState("");
   const [profilePhone, setProfilePhone] = useState("");
 
-  // 🔑 Handle Authentication
-  const handleAuth = async (e: React.FormEvent) => { /* ... já implementado ... */ };
-
   // 🔑 Handle Logout
   const handleLogout = async () => { /* ... já implementado ... */ };
 
