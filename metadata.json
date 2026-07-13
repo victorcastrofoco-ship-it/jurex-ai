@@ -1,0 +1,6 @@
+{
+  "name": "Jurex AI",
+  "description": "Gestão inteligente de empréstimos pessoais com análise de risco por IA.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
