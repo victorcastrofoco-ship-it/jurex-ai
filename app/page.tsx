@@ -187,7 +187,7 @@ export default function Home() {
       }
     } catch (erro) {
       setAuthError("Erro na autenticação: " + erro.message
-  };
+  }
 
   // Submit renegotiate
   const handleRenegotiateSubmit = (loanId: string) => {
