@@ -1623,25 +1623,7 @@ setIsEditingClient(false);
         </div>
       )}
 
-      {/* Modal: Confirm Deletion of Client */}
-      {showDeleteClientConfirm && (
-        <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 animate-fade-in text-center relative">
-            <div className="w-12 h-12 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
-              <AlertCircle size={24} />
-            </div>
-            <h3 className="font-hanken text-lg font-bold text-slate-800 dark:text-white mb-2">Excluir Cliente?</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
-              Tem certeza que deseja excluir o cliente <strong className="font-bold">{selectedClient?.name}</strong>? Esta ação é irreversível e excluirá permanentemente todos os seus contratos e parcelas vinculadas.
-            </p>
-            <div className="flex gap-3 justify-center">
-              <button 
-                onClick={() => setShowDeleteClientConfirm(false)}
-                className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 transition-all cursor-pointer"
-              >
-                Cancelar
-              </button>
-              // 📌 Handle Delete Client
+      // 📌 Handle Delete Client
 const handleDeleteClient = (clientId: string) => {
   JurexStorage.deleteClient(clientId, user?.id || "");
   setClients(JurexStorage.getClients(user?.id || ""));
@@ -1651,16 +1633,44 @@ const handleDeleteClient = (clientId: string) => {
 
 // ...
 
-<button 
-  onClick={() => {
-    if (selectedClient) {
-      handleDeleteClient(selectedClient.id);
-    }
-  }}
-  className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer active:scale-95"
->
-  Confirmar Exclusão
-</button>
+{/* Modal: Confirm Deletion of Client */}
+{showDeleteClientConfirm && (
+  <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-slate-800 animate-fade-in text-center relative">
+      <div className="w-12 h-12 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
+        <AlertCircle size={24} />
+      </div>
+      <h3 className="font-hanken text-lg font-bold text-slate-800 dark:text-white mb-2">
+        Excluir Cliente?
+      </h3>
+      <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+        Tem certeza que deseja excluir o cliente{" "}
+        <strong className="font-bold">{selectedClient?.name}</strong>? Esta ação
+        é irreversível e excluirá permanentemente todos os seus contratos e
+        parcelas vinculadas.
+      </p>
+      <div className="flex gap-3 justify-center">
+        <button
+          onClick={() => setShowDeleteClientConfirm(false)}
+          className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 transition-all cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button
+          onClick={() => {
+            if (selectedClient) {
+              handleDeleteClient(selectedClient.id);
+              setShowDeleteClientConfirm(false);
+            }
+          }}
+          className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer active:scale-95"
+        >
+          Confirmar Exclusão
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
 {/* Modal: Loan Detail View & Repayment management */}
       {selectedLoan && (() => {
