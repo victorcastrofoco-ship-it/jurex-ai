@@ -95,9 +95,6 @@ export default function Home() {
   const [profileName, setProfileName] = useState("");
   const [profilePhone, setProfilePhone] = useState("");
 
-  // 🔑 Handle Logout
-  const handleLogout = async () => { /* ... já implementado ... */ };
-
   // 📌 Handle Select Client
   const handleSelectClient = (client: Client) => {
     setSelectedClient(client);
