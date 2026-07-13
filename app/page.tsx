@@ -95,13 +95,6 @@ export default function Home() {
   const [profileName, setProfileName] = useState("");
   const [profilePhone, setProfilePhone] = useState("");
 
-  // 📌 Handle Select Client
-  const handleSelectClient = (client: Client) => {
-    setSelectedClient(client);
-    setLoans(JurexStorage.getLoans(client.id));
-    setNotifications(JurexStorage.getNotifications(client.id));
-  };
-
   // 📌 Handle Edit Client Submit
   const handleEditClientSubmit = (e: React.FormEvent) => {
     e.preventDefault();
