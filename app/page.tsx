@@ -95,6 +95,39 @@ export default function Home() {
   const [profileName, setProfileName] = useState("");
   const [profilePhone, setProfilePhone] = useState("");
 
+  // 🔑 Handle Authentication
+  const handleAuth = async (e: React.FormEvent) => { /* ... já implementado ... */ };
+
+  // 🔑 Handle Logout
+  const handleLogout = async () => { /* ... já implementado ... */ };
+
+  // 📌 Handle Select Client
+  const handleSelectClient = (client: Client) => {
+    setSelectedClient(client);
+    setLoans(JurexStorage.getLoans(client.id));
+    setNotifications(JurexStorage.getNotifications(client.id));
+  };
+
+  // 📌 Handle Edit Client Submit
+  const handleEditClientSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedClient) return;
+
+    const updatedClient: Client = {
+      ...selectedClient,
+      name: editClientName,
+      cpf: editClientCpf,
+      phone: editClientPhone,
+      email: editClientEmail,
+      notes: editClientNotes,
+    };
+
+    JurexStorage.updateClient(updatedClient, user?.id || "");
+    setClients(JurexStorage.getClients(user?.id || ""));
+    setSelectedClient(updatedClient);
+    setIsEditingClient(false);
+  };
+
   // App initialization
   useEffect(() => {
     JurexStorage.initialize();
