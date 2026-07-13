@@ -186,8 +186,8 @@ export default function Home() {
         setProfilePhone("");
       }
     } catch (erro) {
-      setAuthError("Erro na autenticação: " + erro.message
-  }
+  setAuthError("Erro na autenticação: " + erro.message);
+}
 
   // Submit renegotiate
   const handleRenegotiateSubmit = (loanId: string) => {
