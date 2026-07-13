@@ -162,11 +162,16 @@ export default function Home() {
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const firebaseUser = userCredential.user;
         setUser({
-          id: firebaseUser.uid,
-          name: firebaseUser.displayName || "",
-          email: firebaseUser.email || "",
-          phone: firebaseUser.phoneNumber || ""
-        });
+  id: firebaseUser.uid,
+  name: firebaseUser.displayName || "",
+  email: firebaseUser.email || "",
+  phone: "",
+
+  // campos obrigatórios do tipo User
+  theme: "light", // ou "dark", conforme padrão
+  pushNotificationsEnabled: false, // valor inicial
+  createdAt: new Date().toISOString(), // data atual
+});
         setProfileName(firebaseUser.displayName || "");
         setProfilePhone(firebaseUser.phoneNumber || "");
       } else {
@@ -180,7 +185,10 @@ export default function Home() {
           id: firebaseUser.uid,
           name,
           email: firebaseUser.email || "",
-          phone: ""
+          phone: "",
+          theme: "light",
+          pushNotificationsEnabled: false,
+          createdAt: new Date().toISOString(),
         });
         setProfileName(name);
         setProfilePhone("");
